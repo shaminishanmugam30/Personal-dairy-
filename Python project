@@ -1,0 +1,87 @@
+import os
+import hashlib
+from datetime import datetime
+
+users_db = "users.txt"
+
+def hash_password(password):
+    return hashlib.sha256(password.encode()).hexdigest()
+
+def register():
+    print("\n--- Register ---")
+    username = input("Choose a username: ")
+    password = input("Choose a password: ")
+
+    if os.path.exists(users_db):
+        with open(users_db, "r") as file:
+            for line in file:
+                if username in line:
+                    print("Username already exists.")
+                    return None
+
+    with open(users_db, "a") as file:
+        file.write(f"{username},{hash_password(password)}\n")
+    print("Registration successful.")
+
+def login():
+    print("\n--- Login ---")
+    username = input("Username: ")
+    password = input("Password: ")
+    hashed = hash_password(password)
+
+    if os.path.exists(users_db):
+        with open(users_db, "r") as file:
+            for line in file:
+                u, p = line.strip().split(",")
+                if u == username and p == hashed:
+                    print("Login successful.")
+                    return username
+    print("Login failed.")
+    return None
+
+def write_entry(username):
+    print("\n--- Write Diary Entry ---")
+    entry = input("Write your thoughts:\n")
+    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    filename = f"{username}_diary.txt"
+    with open(filename, "a") as file:
+        file.write(f"[{now}]\n{entry}\n\n")
+    print("Entry saved.")
+
+def view_entries(username):
+    filename = f"{username}_diary.txt"
+    print("\n--- Your Diary Entries ---")
+    if os.path.exists(filename):
+        with open(filename, "r") as file:
+            print(file.read())
+    else:
+        print("No entries found.")
+
+def main():
+    print("Welcome to Personal Diary")
+    while True:
+        print("\n1. Register\n2. Login\n3. Exit")
+        choice = input("Choose an option: ")
+        if choice == "1":
+            register()
+        elif choice == "2":
+            user = login()
+            if user:
+                while True:
+                    print("\n1. Write Entry\n2. View Entries\n3. Logout")
+                    action = input("Choose an action: ")
+                    if action == "1":
+                        write_entry(user)
+                    elif action == "2":
+                        view_entries(user)
+                    elif action == "3":
+                        print("Logged out.")
+                        break
+                    else:
+                        print("Invalid choice.")
+        elif choice == "3":
+            print("Goodbye.")
+            break
+        else:
+            print("Invalid option.")
+main()
